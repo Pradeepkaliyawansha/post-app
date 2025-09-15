@@ -18,23 +18,36 @@ const Register = () => {
   const validateForm = () => {
     const newErrors = {};
 
+    // Username validation
     if (!formData.username.trim()) {
       newErrors.username = "Username is required";
+    } else if (formData.username.length < 3) {
+      newErrors.username = "Username must be at least 3 characters";
+    } else if (formData.username.length > 50) {
+      newErrors.username = "Username must be less than 50 characters";
+    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+      newErrors.username =
+        "Username can only contain letters, numbers, and underscores";
     }
 
+    // Email validation
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email is invalid";
     }
 
+    // Password validation
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    // Confirm password validation
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
@@ -67,15 +80,23 @@ const Register = () => {
     }
 
     setLoading(true);
-    const result = await register({
-      username: formData.username,
-      email: formData.email,
+
+    // Only send the required fields to the backend
+    const registrationData = {
+      username: formData.username.trim(),
+      email: formData.email.trim().toLowerCase(),
       password: formData.password,
-    });
+    };
+
+    console.log("Sending registration data:", registrationData);
+
+    const result = await register(registrationData);
 
     if (result.success) {
-      navigate("/post");
+      console.log("Registration successful, redirecting to posts");
+      navigate("/posts");
     } else {
+      console.error("Registration failed:", result.error);
       setErrors({ submit: result.error });
     }
     setLoading(false);
@@ -106,7 +127,7 @@ const Register = () => {
                 htmlFor="username"
                 className="block text-sm font-medium text-gray-700"
               >
-                Full Name
+                Username
               </label>
               <input
                 id="username"
@@ -117,10 +138,10 @@ const Register = () => {
                 className={`input-field ${
                   errors.username ? "border-red-500" : ""
                 }`}
-                placeholder="Enter your full name"
+                placeholder="Enter your username"
               />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+              {errors.username && (
+                <p className="mt-1 text-sm text-red-600">{errors.username}</p>
               )}
             </div>
 
