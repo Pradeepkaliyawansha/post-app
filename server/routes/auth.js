@@ -7,6 +7,12 @@ const { authenticateToken } = require("../middleware/auth");
 
 const router = express.Router();
 
+// Verify JWT_SECRET is available
+if (!process.env.JWT_SECRET) {
+  console.error("FATAL: JWT_SECRET is not defined in environment variables");
+  throw new Error("JWT_SECRET must be defined in .env file");
+}
+
 // Register
 router.post(
   "/register",
@@ -44,7 +50,7 @@ router.post(
       console.log("Registration attempt:", {
         username,
         email,
-        passwordLength: password.length,
+        passwordLength: password?.length,
       });
 
       // Check if user exists
@@ -90,24 +96,45 @@ router.post(
                 });
               }
 
-              // Generate token
-              const token = jwt.sign(
-                { userId: result.insertId, username },
-                process.env.JWT_SECRET,
-                { expiresIn: "7d" }
-              );
+              try {
+                // Generate token - with additional error checking
+                if (!process.env.JWT_SECRET) {
+                  console.error("JWT_SECRET is undefined at token generation");
+                  return res.status(500).json({
+                    success: false,
+                    message: "Server configuration error",
+                  });
+                }
 
-              res.status(201).json({
-                success: true,
-                message: "User created successfully",
-                token,
-                user: {
+                const token = jwt.sign(
+                  { userId: result.insertId, username },
+                  process.env.JWT_SECRET,
+                  { expiresIn: "7d" }
+                );
+
+                console.log("User created successfully:", {
                   id: result.insertId,
                   username,
-                  email,
-                  name: username, // Add name field for consistency with frontend
-                },
-              });
+                });
+
+                res.status(201).json({
+                  success: true,
+                  message: "User created successfully",
+                  token,
+                  user: {
+                    id: result.insertId,
+                    username,
+                    email,
+                    name: username,
+                  },
+                });
+              } catch (tokenError) {
+                console.error("JWT signing error:", tokenError);
+                return res.status(500).json({
+                  success: false,
+                  message: "Token generation failed",
+                });
+              }
             }
           );
         } catch (hashError) {
@@ -185,7 +212,15 @@ router.post(
           });
         }
 
-        // Generate token
+        // Generate token - with additional error checking
+        if (!process.env.JWT_SECRET) {
+          console.error("JWT_SECRET is undefined at token generation");
+          return res.status(500).json({
+            success: false,
+            message: "Server configuration error",
+          });
+        }
+
         const token = jwt.sign(
           { userId: user.id, username: user.username },
           process.env.JWT_SECRET,
@@ -200,7 +235,7 @@ router.post(
             id: user.id,
             username: user.username,
             email: user.email,
-            name: user.username, // Add name field for consistency with frontend
+            name: user.username,
           },
         });
       } catch (passwordError) {
@@ -240,7 +275,7 @@ router.get("/me", authenticateToken, (req, res) => {
       success: true,
       user: {
         ...user,
-        name: user.username, // Add name field for consistency
+        name: user.username,
       },
     });
   });

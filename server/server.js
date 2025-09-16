@@ -1,4 +1,16 @@
+// Load environment variables FIRST
 require("dotenv").config();
+
+// Debug: Check if JWT_SECRET is loaded
+console.log("JWT_SECRET loaded:", !!process.env.JWT_SECRET);
+if (!process.env.JWT_SECRET) {
+  console.error("ERROR: JWT_SECRET not found in environment variables!");
+  console.error(
+    "Make sure you have a .env file in the server directory with JWT_SECRET defined."
+  );
+  process.exit(1);
+}
+
 const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/auth");
@@ -20,7 +32,11 @@ app.use("/api/users", userRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
-  res.json({ status: "OK", message: "Post App Backend is running" });
+  res.json({
+    status: "OK",
+    message: "Post App Backend is running",
+    env_loaded: !!process.env.JWT_SECRET,
+  });
 });
 
 // Error handling middleware
@@ -43,4 +59,5 @@ app.use("*", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
 });
