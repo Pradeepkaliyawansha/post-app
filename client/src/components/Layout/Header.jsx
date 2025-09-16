@@ -1,8 +1,16 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 const Header = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    // Navigate to login page after logout
+    navigate("/login", { replace: true });
+  };
 
   return (
     <header className="bg-white shadow-sm border-b">
@@ -17,7 +25,7 @@ const Header = () => {
           {user && (
             <div className="flex items-center space-x-4">
               <span className="text-gray-700">Welcome, {user.name}!</span>
-              <button onClick={logout} className="btn-secondary text-sm">
+              <button onClick={handleLogout} className="btn-secondary text-sm">
                 Logout
               </button>
             </div>

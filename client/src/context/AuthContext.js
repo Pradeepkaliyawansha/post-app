@@ -16,13 +16,27 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
+    // Check for existing auth on app start
+    const initializeAuth = () => {
+      try {
+        const token = localStorage.getItem("token");
+        const savedUser = localStorage.getItem("user");
 
-    if (token && savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    setLoading(false);
+        if (token && savedUser) {
+          const parsedUser = JSON.parse(savedUser);
+          setUser(parsedUser);
+        }
+      } catch (error) {
+        console.error("Error parsing saved user data:", error);
+        // Clear corrupted data
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   const login = async (credentials) => {
@@ -36,6 +50,7 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
+      console.error("Login error:", error);
       return {
         success: false,
         error: error.response?.data?.message || "Login failed",
@@ -54,6 +69,7 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
+      console.error("Registration error:", error);
       return {
         success: false,
         error: error.response?.data?.message || "Registration failed",

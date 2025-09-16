@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 const Register = () => {
@@ -12,8 +12,17 @@ const Register = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const { register } = useAuth();
+  const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // If already authenticated, redirect to posts
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      const from = location.state?.from?.pathname || "/posts";
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, location.state]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -94,7 +103,9 @@ const Register = () => {
 
     if (result.success) {
       console.log("Registration successful, redirecting to posts");
-      navigate("/posts");
+      // Navigate to intended destination or posts page
+      const from = location.state?.from?.pathname || "/posts";
+      navigate(from, { replace: true });
     } else {
       console.error("Registration failed:", result.error);
       setErrors({ submit: result.error });
@@ -139,6 +150,7 @@ const Register = () => {
                   errors.username ? "border-red-500" : ""
                 }`}
                 placeholder="Enter your username"
+                disabled={loading}
               />
               {errors.username && (
                 <p className="mt-1 text-sm text-red-600">{errors.username}</p>
@@ -162,6 +174,7 @@ const Register = () => {
                   errors.email ? "border-red-500" : ""
                 }`}
                 placeholder="Enter your email"
+                disabled={loading}
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email}</p>
@@ -185,6 +198,7 @@ const Register = () => {
                   errors.password ? "border-red-500" : ""
                 }`}
                 placeholder="Enter your password"
+                disabled={loading}
               />
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password}</p>
@@ -208,6 +222,7 @@ const Register = () => {
                   errors.confirmPassword ? "border-red-500" : ""
                 }`}
                 placeholder="Confirm your password"
+                disabled={loading}
               />
               {errors.confirmPassword && (
                 <p className="mt-1 text-sm text-red-600">

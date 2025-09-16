@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 const Login = () => {
@@ -10,8 +10,17 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // If already authenticated, redirect to posts
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      const from = location.state?.from?.pathname || "/posts";
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, location.state]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -58,7 +67,9 @@ const Login = () => {
     const result = await login(formData);
 
     if (result.success) {
-      navigate("/tasks");
+      // Navigate to intended destination or posts page
+      const from = location.state?.from?.pathname || "/posts";
+      navigate(from, { replace: true });
     } else {
       setErrors({ submit: result.error });
     }
@@ -102,6 +113,7 @@ const Login = () => {
                   errors.email ? "border-red-500" : ""
                 }`}
                 placeholder="Enter your email"
+                disabled={loading}
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email}</p>
@@ -125,6 +137,7 @@ const Login = () => {
                   errors.password ? "border-red-500" : ""
                 }`}
                 placeholder="Enter your password"
+                disabled={loading}
               />
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password}</p>
