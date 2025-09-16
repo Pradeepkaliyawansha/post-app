@@ -10,6 +10,7 @@ import Header from "./components/Layout/Header";
 import ProtectedRoute from "./components/Layout/ProtectedRoute";
 import Login from "./components/Auth/Login";
 import Register from "./components/Auth/Register";
+import PostList from "./components/Post/PostList";
 
 function App() {
   return (
@@ -21,15 +22,15 @@ function App() {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              {/* <Route
-                path="/post"
+              <Route
+                path="/posts"
                 element={
                   <ProtectedRoute>
                     <PostList />
                   </ProtectedRoute>
                 }
               />
-              <Route path="/" element={<Navigate to="/posts" />} /> */}
+              <Route path="/" element={<Navigate to="/posts" />} />
             </Routes>
           </main>
         </div>

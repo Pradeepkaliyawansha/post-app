@@ -105,6 +105,7 @@ router.post(
                   id: result.insertId,
                   username,
                   email,
+                  name: username, // Add name field for consistency with frontend
                 },
               });
             }
@@ -129,11 +130,11 @@ router.post(
   }
 );
 
-// Login
+// Login - Fixed to match frontend expectations
 router.post(
   "/login",
   [
-    body("login").notEmpty().withMessage("Email or username is required"),
+    body("email").notEmpty().withMessage("Email is required"),
     body("password").notEmpty().withMessage("Password is required"),
   ],
   (req, res) => {
@@ -147,15 +148,15 @@ router.post(
       });
     }
 
-    const { login, password } = req.body;
+    const { email, password } = req.body;
 
     // Log the login attempt for debugging
-    console.log("Login attempt for:", login);
+    console.log("Login attempt for:", email);
 
-    // Find user by username or email
-    const query = "SELECT * FROM users WHERE username = ? OR email = ?";
+    // Find user by email
+    const query = "SELECT * FROM users WHERE email = ?";
 
-    db.query(query, [login, login], async (err, results) => {
+    db.query(query, [email], async (err, results) => {
       if (err) {
         console.error("Database error during login:", err);
         return res.status(500).json({
@@ -199,6 +200,7 @@ router.post(
             id: user.id,
             username: user.username,
             email: user.email,
+            name: user.username, // Add name field for consistency with frontend
           },
         });
       } catch (passwordError) {
@@ -215,7 +217,7 @@ router.post(
 // Get current user
 router.get("/me", authenticateToken, (req, res) => {
   const query =
-    "SELECT id, username, email, full_name, bio, profile_image, created_at FROM users WHERE id = ?";
+    "SELECT id, username, email, created_at FROM users WHERE id = ?";
 
   db.query(query, [req.user.userId], (err, results) => {
     if (err) {
@@ -233,9 +235,13 @@ router.get("/me", authenticateToken, (req, res) => {
       });
     }
 
+    const user = results[0];
     res.json({
       success: true,
-      user: results[0],
+      user: {
+        ...user,
+        name: user.username, // Add name field for consistency
+      },
     });
   });
 });

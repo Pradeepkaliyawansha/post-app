@@ -36,10 +36,10 @@ export const authAPI = {
 };
 
 export const postAPI = {
-  getPost: () => api.get("/post"),
+  getPosts: () => api.get("/posts"), // Fixed: was getPost, now getPosts
   createPost: (postData) => api.post("/posts", postData),
-  updatePost: (id, postData) => api.put(`/post/${id}`, postData),
-  deletePost: (id) => api.delete(`/post/${id}`),
+  updatePost: (id, postData) => api.put(`/posts/${id}`, postData), // Fixed: was /post/
+  deletePost: (id) => api.delete(`/posts/${id}`), // Fixed: was /post/
 };
 
 export default api;
